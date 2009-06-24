@@ -20,6 +20,10 @@ function domain_adv_menu_alter(&$callbacks) {
  * Implementation of hook_db_rewrite_sql().
  */
 function domain_adv_db_rewrite_sql($query, $primary_table, $primary_field, $args) {
+  if (domain_grant_all()) {
+    return;
+  }
+  
   switch ($primary_field) {
     case 'nid':
       $return = array();
