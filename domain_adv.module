@@ -58,7 +58,9 @@ function domain_adv_domaingrants(&$grants, $node, $op) {
  */
 function domain_adv_node_access($op, $node) {
   if (!empty($node->domains)) {
-    if (!isset($node->domains[$GLOBALS['_domain']['domain_id']]) && !isset($node->domains[-1])) {
+    $domain_id = $GLOBALS['_domain']['domain_id'];
+    if ($domain_id == 0) $domain_id = -1;
+    if (!isset($node->domains[$domain_id]) && !$node->domain_site) {
       return FALSE;
     }
   }
