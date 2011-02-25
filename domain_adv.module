@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Implement hooks to change the domain module not to use node access to

@@ -1,4 +1,3 @@
-$Id$
 
 This an extension to the <a href="/project/domain">Domain Access</a> module
 which is used to create many domains from a single installation.
