@@ -1,5 +1,6 @@
+#Drupal access advanced
 
-This an extension to the <a href="/project/domain">Domain Access</a> module
+This an extension to the [Domain](https://drupal.org/project/domain) module
 which is used to create many domains from a single installation.
 
 For what I see as a problem is that the domain module uses the node access
