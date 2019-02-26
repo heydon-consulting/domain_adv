@@ -5,3 +5,53 @@
  * filter nodes but to use db_rewrite_sql() directly which should make
  * integration with other node access module much easier.
  */
+
+use Drupal\Core\Database\Query\AlterableInterface;
+use Drupal\Core\Entity\Sql\DefaultTableMapping;
+use Drupal\node\Entity\NodeType;
+
+/**
+ * Implements hook_query_TAG_alter().
+ */
+function domain_adv_query_node_access_alter(AlterableInterface $query) {
+  /** @var \Drupal\domain_access\DomainAccessManagerInterface $domain_access_manager */
+  $domain_access_manager = \Drupal::service('domain_access.manager');
+  /** @var \Drupal\domain\DomainNegotiatorInterface $domain_negotiator */
+  $domain_negotiator = \Drupal::service('domain.negotiator');
+
+  if ($domain = $domain_negotiator->getActiveDomain()) {
+    /** @var \Drupal\Core\Entity\EntityFieldManager $definition */
+    $field_manager = \Drupal::service('entity_field.manager');
+    $definitions = $field_manager->getFieldStorageDefinitions('node');
+
+    /** @var \Drupal\Core\Entity\Sql\DefaultTableMapping $table_mapping */
+    $table_mapping = \Drupal::entityTypeManager()
+      ->getStorage('node')
+      ->getTableMapping();
+
+    /** @var \Drupal\Core\Database\Query\Condition $condition_group */
+    $condition_group = $query->orConditionGroup();
+
+    if (isset($definitions[DOMAIN_ACCESS_FIELD])) {
+      /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
+      $definition = $definitions[DOMAIN_ACCESS_FIELD];
+
+      $base_table = reset(array_keys($query->getTables()));
+      $table_name = $table_mapping->getFieldTableName(DOMAIN_ACCESS_FIELD);
+      $query->leftJoin($table_name, DOMAIN_ACCESS_FIELD, $base_table . '.vid = ' . DOMAIN_ACCESS_FIELD . '.revision_id');
+      $condition_group->condition(DOMAIN_ACCESS_FIELD . '.' . $definition->getName() . '_target_id', $domain->id());
+    }
+
+    if (isset($definitions[DOMAIN_ACCESS_ALL_FIELD])) {
+      /** @var \Drupal\Core\Field\BaseFieldDefinition $definition */
+      $definition = $definitions[DOMAIN_ACCESS_ALL_FIELD];
+
+      $base_table = reset(array_keys($query->getTables()));
+      $table_name = $table_mapping->getFieldTableName(DOMAIN_ACCESS_ALL_FIELD);
+      $query->leftJoin($table_name, DOMAIN_ACCESS_ALL_FIELD, $base_table . '.vid = ' . DOMAIN_ACCESS_ALL_FIELD . '.revision_id');
+      $condition_group->condition(DOMAIN_ACCESS_ALL_FIELD . '.' . $definition->getName() . '_value', 1);
+    }
+
+    $query->condition($condition_group);
+  }
+}
